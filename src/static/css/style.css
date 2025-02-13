@@ -1,0 +1,60 @@
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer {
+    margin-top: auto;
+}
+
+.table-responsive {
+    margin-bottom: 1rem;
+}
+
+.alert {
+    margin-bottom: 1rem;
+}
+
+.card {
+    margin-bottom: 1rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.btn-group {
+    margin-bottom: 0.5rem;
+}
+
+.dropdown-menu {
+    min-width: 200px;
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.badge {
+    font-size: 0.875rem;
+}
+
+.navbar {
+    margin-bottom: 2rem;
+}
+
+.navbar-brand {
+    font-weight: 500;
+}
+
+.nav-link {
+    padding: 0.5rem 1rem;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
+}

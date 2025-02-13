@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>デバイス一覧</h2>
+    <div>
+        <a href="{{ url_for('device.add_device') }}" class="btn btn-primary me-2">新規追加</a>
+        <div class="btn-group">
+            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                CSVツール
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('device.export_devices') }}">CSVエクスポート</a></li>
+                <li>
+                    <form action="{{ url_for('device.import_devices_csv') }}" method="post" enctype="multipart/form-data" class="px-3 py-2">
+                        <div class="mb-2">
+                            <input type="file" name="file" accept=".csv" class="form-control form-control-sm">
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary w-100">CSVインポート</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>設置場所</th>
+                <th>PC/ID</th>
+                <th>ステータス</th>
+                <th>解除期限</th>
+                <th>故障機交換</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for device in devices %}
+            <tr>
+                <td>{{ device.id }}</td>
+                <td>{{ device.location }}</td>
+                <td>{{ device.pc_id }}</td>
+                <td>{{ device.status }}</td>
+                <td>{{ device.release_date.strftime('%Y-%m-%d') if device.release_date else '-' }}</td>
+                <td>{{ '○' if device.is_replacement else '×' }}</td>
+                <td>
+                    <a href="{{ url_for('device.edit_device', id=device.id) }}" class="btn btn-sm btn-warning">編集</a>
+                    <a href="{{ url_for('device.delete_device', id=device.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('本当に削除しますか？')">削除</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

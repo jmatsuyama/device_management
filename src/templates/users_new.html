@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>ユーザー管理</h2>
+    <a href="{{ url_for('user.add_user') }}" class="btn btn-primary">新規ユーザー追加</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>名前</th>
+                <th>ユーザーID</th>
+                <th>所属組織</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.user_id }}</td>
+                <td>{{ user.organization }}</td>
+                <td>
+                    {% if user.user_id != 'admin' %}
+                        <a href="{{ url_for('user.delete_user', id=user.id) }}" 
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('本当に削除しますか？')">削除</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

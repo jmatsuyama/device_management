@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>ロッカー一覧</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ロッカー名</th>
+                        <th>状態</th>
+                        <th>最終更新日時</th>
+                        <th>パスワード</th>
+                        <th>格納デバイス</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for locker in lockers %}
+                    <tr>
+                        <td>{{ locker.name }}</td>
+                        <td>
+                            <span class="badge {{ 'bg-danger' if locker.is_locked else 'bg-success' }}">
+                                {{ 'ロック' if locker.is_locked else 'アンロック' }}
+                            </span>
+                        </td>
+                        <td>{{ locker.last_updated.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if locker.password and locker.password_expiry > now %}
+                                {{ locker.password }}
+                                <br>
+                                <small class="text-muted">期限: {{ locker.password_expiry.strftime('%Y-%m-%d %H:%M') }}</small>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if locker.device %}
+                                {{ locker.device.pc_id }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('locker.toggle_locker', id=locker.id) }}" class="btn btn-sm {{ 'btn-success' if locker.is_locked else 'btn-danger' }}">
+                                {{ 'アンロック' if locker.is_locked else 'ロック' }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">パスワード発行</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('locker.issue_password') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="device_id" class="form-label">デバイス</label>
+                        <select class="form-select" id="device_id" name="device_id" required>
+                            <option value="">選択してください</option>
+                            {% for device in devices %}
+                                {% if device.status == '利用可能' %}
+                                    <option value="{{ device.id }}">{{ device.pc_id }} ({{ device.location }})</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="locker_id" class="form-label">ロッカー</label>
+                        <select class="form-select" id="locker_id" name="locker_id" required>
+                            <option value="">選択してください</option>
+                            {% for locker in lockers %}
+                                {% if not locker.device_id %}
+                                    <option value="{{ locker.id }}">{{ locker.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expiry_hours" class="form-label">有効期限（時間）</label>
+                        <input type="number" class="form-control" id="expiry_hours" name="expiry_hours" value="24" min="1" max="72" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">パスワード発行</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

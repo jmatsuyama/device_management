@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">デバイス追加</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="location" class="form-label">設置場所</label>
+                        <input type="text" class="form-control" id="location" name="location" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pc_id" class="form-label">PC/ID</label>
+                        <input type="text" class="form-control" id="pc_id" name="pc_id" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">ステータス</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="利用可能">利用可能</option>
+                            <option value="使用中">使用中</option>
+                            <option value="メンテナンス中">メンテナンス中</option>
+                            <option value="故障">故障</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="release_date" class="form-label">解除期限</label>
+                        <input type="date" class="form-control" id="release_date" name="release_date">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_replacement" name="is_replacement">
+                        <label class="form-check-label" for="is_replacement">故障機交換</label>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">登録</button>
+                        <a href="{{ url_for('device.list_devices') }}" class="btn btn-secondary">キャンセル</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
