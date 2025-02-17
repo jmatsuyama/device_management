@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
 import sqlite3
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import StringIO
+import random
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev'
@@ -26,6 +27,9 @@ def init_db():
                 cursor.execute('INSERT INTO lockers (name) VALUES (?)', (f'ロッカー{i}',))
         db.commit()
 
+def generate_password():
+    return f"{random.randint(0, 9999):04d}"
+
 @app.route('/')
 def home():
     return render_template('home.html')
@@ -33,7 +37,12 @@ def home():
 @app.route('/devices')
 def devices():
     db = get_db()
-    devices = db.execute('SELECT * FROM devices ORDER BY created_at DESC').fetchall()
+    devices = db.execute('''
+        SELECT d.*, l.name as locker_name 
+        FROM devices d 
+        LEFT JOIN lockers l ON d.locker_id = l.id 
+        ORDER BY d.created_at DESC
+    ''').fetchall()
     return render_template('devices.html', devices=devices)
 
 @app.route('/add', methods=['GET', 'POST'])
@@ -135,6 +144,41 @@ def toggle_locker(id):
     db.commit()
     flash(f'ロッカー{id}のステータスが{new_status}に変更されました')
     return redirect(url_for('lockers'))
+
+@app.route('/get_available_lockers')
+def get_available_lockers():
+    db = get_db()
+    lockers = db.execute('SELECT * FROM lockers WHERE status = "施錠" AND password IS NULL').fetchall()
+    return jsonify([dict(locker) for locker in lockers])
+
+@app.route('/issue_password/<int:device_id>', methods=['POST'])
+def issue_password(device_id):
+    db = get_db()
+    locker_id = request.form.get('locker_id')
+    expiry_date = request.form.get('expiry_date')
+    
+    if not locker_id or not expiry_date:
+        return jsonify({'error': '必要な情報が不足しています'}), 400
+    
+    password = generate_password()
+    expiry_datetime = datetime.strptime(expiry_date, '%Y-%m-%d')
+    
+    db.execute(
+        'UPDATE lockers SET status = ?, password = ?, password_expiry = ? WHERE id = ?',
+        ('施錠', password, expiry_datetime, locker_id)
+    )
+    
+    db.execute(
+        'UPDATE devices SET status = ?, locker_id = ?, release_date = ? WHERE id = ?',
+        ('受取待ち', locker_id, expiry_date, device_id)
+    )
+    
+    db.commit()
+    
+    return jsonify({
+        'password': password,
+        'locker_name': db.execute('SELECT name FROM lockers WHERE id = ?', (locker_id,)).fetchone()['name']
+    })
 
 if __name__ == '__main__':
     init_db()

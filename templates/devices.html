@@ -20,6 +20,7 @@
                 <th>ステータス</th>
                 <th>解除期限</th>
                 <th>故障機交換</th>
+                <th>ロッカー</th>
                 <th>操作</th>
             </tr>
         </thead>
@@ -32,13 +33,138 @@
                 <td>{{ device['status'] }}</td>
                 <td>{{ device['release_date'] or '未設定' }}</td>
                 <td>{{ '有' if device['is_replacement'] else '無' }}</td>
+                <td>{{ device['locker_name'] or '-' }}</td>
                 <td>
                     <a href="{{ url_for('edit', id=device['id']) }}" class="btn btn-sm btn-warning">編集</a>
                     <a href="{{ url_for('delete', id=device['id']) }}" class="btn btn-sm btn-danger" onclick="return confirm('本当に削除しますか？')">削除</a>
+                    {% if device['status'] == '出荷待ち' %}
+                    <button class="btn btn-sm btn-info issue-password" data-device-id="{{ device['id'] }}">
+                        <i class="bi bi-key"></i> パスワード発行
+                    </button>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<!-- ロッカー選択モーダル -->
+<div class="modal fade" id="lockerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ロッカー選択</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="lockerForm">
+                    <div class="mb-3" id="lockerOptions">
+                        <!-- ロッカーのラジオボタンがここに動的に追加されます -->
+                    </div>
+                    <div class="mb-3">
+                        <label for="expiryDate" class="form-label">解錠期限</label>
+                        <input type="date" class="form-control" id="expiryDate" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="issuePassword">パスワード発行</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- パスワード表示モーダル -->
+<div class="modal fade" id="passwordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">パスワード発行完了</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <h3 id="lockerName"></h3>
+                    <p class="mb-3">発行されたパスワード:</p>
+                    <h2 class="display-4 mb-4" id="issuedPassword"></h2>
+                    <p class="text-danger">このパスワードは一度しか表示されません。<br>必ずメモを取ってください。</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">閉じる</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentDeviceId = null;
+const lockerModal = new bootstrap.Modal(document.getElementById('lockerModal'));
+const passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
+
+document.querySelectorAll('.issue-password').forEach(button => {
+    button.addEventListener('click', async () => {
+        currentDeviceId = button.dataset.deviceId;
+        const response = await fetch('/get_available_lockers');
+        const lockers = await response.json();
+        
+        const lockerOptions = document.getElementById('lockerOptions');
+        lockerOptions.innerHTML = lockers.map(locker => `
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="locker" 
+                       id="locker${locker.id}" value="${locker.id}" 
+                       ${locker.status === '施錠' ? 'disabled' : ''}>
+                <label class="form-check-label" for="locker${locker.id}">
+                    ${locker.name} ${locker.status === '施錠' ? '(使用中)' : ''}
+                </label>
+            </div>
+        `).join('');
+        
+        lockerModal.show();
+    });
+});
+
+document.getElementById('issuePassword').addEventListener('click', async () => {
+    const selectedLocker = document.querySelector('input[name="locker"]:checked');
+    const expiryDate = document.getElementById('expiryDate').value;
+    
+    if (!selectedLocker || !expiryDate) {
+        alert('ロッカーと解錠期限を選択してください。');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('locker_id', selectedLocker.value);
+    formData.append('expiry_date', expiryDate);
+    
+    const response = await fetch(`/issue_password/${currentDeviceId}`, {
+        method: 'POST',
+        body: formData
+    });
+    
+    const result = await response.json();
+    if (response.ok) {
+        lockerModal.hide();
+        document.getElementById('lockerName').textContent = result.locker_name;
+        document.getElementById('issuedPassword').textContent = result.password;
+        passwordModal.show();
+        
+        // パスワードモーダルが閉じられたらページをリロード
+        document.getElementById('passwordModal').addEventListener('hidden.bs.modal', () => {
+            location.reload();
+        });
+    } else {
+        alert(result.error || 'エラーが発生しました。');
+    }
+});
+</script>
 {% endblock %}
