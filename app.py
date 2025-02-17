@@ -20,6 +20,15 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def jeis_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('organization') != 'JEIS':
+            flash('権限がありません')
+            return redirect(url_for('home'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 def get_db():
     db = sqlite3.connect(DATABASE)
     db.row_factory = sqlite3.Row
@@ -44,7 +53,19 @@ def generate_password():
 @app.route('/')
 @login_required
 def home():
+    # JRユーザーは受付画面にリダイレクト
+    if session.get('organization') == 'JR':
+        return redirect(url_for('reception'))
     return render_template('home.html')
+
+@app.route('/reception')
+@login_required
+def reception():
+    # JRユーザーのみアクセス可能
+    if session.get('organization') != 'JR':
+        flash('権限がありません')
+        return redirect(url_for('home'))
+    return render_template('reception.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -60,6 +81,10 @@ def login():
             session['user_name'] = user['name']
             session['organization'] = user['organization']
             flash('ログインしました')
+            
+            # JRユーザーは受付画面へ、それ以外はホーム画面へ
+            if user['organization'] == 'JR':
+                return redirect(url_for('reception'))
             return redirect(url_for('home'))
         
         flash('ユーザーIDまたはパスワードが正しくありません')
@@ -73,22 +98,16 @@ def logout():
 
 @app.route('/users')
 @login_required
+@jeis_required
 def users():
-    if session.get('organization') != 'JEIS':
-        flash('権限がありません')
-        return redirect(url_for('home'))
-    
     db = get_db()
     users = db.execute('SELECT * FROM users ORDER BY created_at DESC').fetchall()
     return render_template('users.html', users=users)
 
 @app.route('/users/add', methods=['GET', 'POST'])
 @login_required
+@jeis_required
 def add_user():
-    if session.get('organization') != 'JEIS':
-        flash('権限がありません')
-        return redirect(url_for('home'))
-    
     if request.method == 'POST':
         name = request.form['name']
         user_id = request.form['user_id']
@@ -111,11 +130,8 @@ def add_user():
 
 @app.route('/users/delete/<int:id>')
 @login_required
+@jeis_required
 def delete_user(id):
-    if session.get('organization') != 'JEIS':
-        flash('権限がありません')
-        return redirect(url_for('home'))
-    
     db = get_db()
     db.execute('DELETE FROM users WHERE id = ?', (id,))
     db.commit()
@@ -124,6 +140,7 @@ def delete_user(id):
 
 @app.route('/devices')
 @login_required
+@jeis_required
 def devices():
     db = get_db()
     devices = db.execute('''
@@ -136,6 +153,7 @@ def devices():
 
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
+@jeis_required
 def add():
     if request.method == 'POST':
         location = request.form['location']
@@ -155,6 +173,7 @@ def add():
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
+@jeis_required
 def edit(id):
     db = get_db()
     if request.method == 'POST':
@@ -179,6 +198,7 @@ def edit(id):
 
 @app.route('/delete/<int:id>')
 @login_required
+@jeis_required
 def delete(id):
     db = get_db()
     db.execute('DELETE FROM devices WHERE id = ?', (id,))
@@ -188,6 +208,7 @@ def delete(id):
 
 @app.route('/export')
 @login_required
+@jeis_required
 def export_csv():
     db = get_db()
     devices = db.execute('SELECT * FROM devices ORDER BY created_at DESC').fetchall()
@@ -254,6 +275,7 @@ def get_available_lockers():
 
 @app.route('/issue_password/<int:device_id>', methods=['POST'])
 @login_required
+@jeis_required
 def issue_password(device_id):
     db = get_db()
     locker_id = request.form.get('locker_id')
