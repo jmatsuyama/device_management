@@ -29,6 +29,15 @@ def jeis_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def jr_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('organization') != 'JR':
+            flash('権限がありません')
+            return redirect(url_for('home'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 def get_db():
     db = sqlite3.connect(DATABASE)
     db.row_factory = sqlite3.Row
@@ -60,12 +69,46 @@ def home():
 
 @app.route('/reception')
 @login_required
+@jr_required
 def reception():
-    # JRユーザーのみアクセス可能
-    if session.get('organization') != 'JR':
-        flash('権限がありません')
-        return redirect(url_for('home'))
     return render_template('reception.html')
+
+@app.route('/enter_password', methods=['GET', 'POST'])
+@login_required
+@jr_required
+def enter_password():
+    db = get_db()
+    if request.method == 'POST':
+        locker_id = request.form.get('locker_id')
+        password = request.form.get('password')
+        
+        if not locker_id or not password:
+            flash('ロッカーとパスワードを入力してください')
+            return redirect(url_for('enter_password'))
+        
+        locker = db.execute('SELECT * FROM lockers WHERE id = ?', (locker_id,)).fetchone()
+        
+        if not locker['password']:
+            flash('このロッカーは使用できません')
+            return redirect(url_for('enter_password'))
+        
+        if locker['password'] != password:
+            flash('パスワードが正しくありません')
+            return redirect(url_for('enter_password'))
+        
+        # パスワードが正しい場合、ロッカーを解錠
+        db.execute(
+            'UPDATE lockers SET status = ?, password = NULL, password_expiry = NULL, '
+            'last_updated = CURRENT_TIMESTAMP WHERE id = ?',
+            ('解錠', locker_id)
+        )
+        db.commit()
+        
+        flash(f'{locker["name"]}が開きます。ご利用ありがとうございました。')
+        return redirect(url_for('enter_password'))
+    
+    lockers = db.execute('SELECT * FROM lockers ORDER BY id').fetchall()
+    return render_template('enter_password.html', lockers=lockers)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
