@@ -1,13 +1,24 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify, session
+from functools import wraps
 import sqlite3
 import csv
 from datetime import datetime, timedelta
 from io import StringIO
 import random
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev'
 DATABASE = 'devices.db'
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('ログインが必要です')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def get_db():
     db = sqlite3.connect(DATABASE)
@@ -31,10 +42,88 @@ def generate_password():
     return f"{random.randint(0, 9999):04d}"
 
 @app.route('/')
+@login_required
 def home():
     return render_template('home.html')
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        password = request.form['password']
+        
+        db = get_db()
+        user = db.execute('SELECT * FROM users WHERE user_id = ?', (user_id,)).fetchone()
+        
+        if user and check_password_hash(user['password'], password):
+            session['user_id'] = user['user_id']
+            session['user_name'] = user['name']
+            session['organization'] = user['organization']
+            flash('ログインしました')
+            return redirect(url_for('home'))
+        
+        flash('ユーザーIDまたはパスワードが正しくありません')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('ログアウトしました')
+    return redirect(url_for('login'))
+
+@app.route('/users')
+@login_required
+def users():
+    if session.get('organization') != 'JEIS':
+        flash('権限がありません')
+        return redirect(url_for('home'))
+    
+    db = get_db()
+    users = db.execute('SELECT * FROM users ORDER BY created_at DESC').fetchall()
+    return render_template('users.html', users=users)
+
+@app.route('/users/add', methods=['GET', 'POST'])
+@login_required
+def add_user():
+    if session.get('organization') != 'JEIS':
+        flash('権限がありません')
+        return redirect(url_for('home'))
+    
+    if request.method == 'POST':
+        name = request.form['name']
+        user_id = request.form['user_id']
+        password = request.form['password']
+        organization = request.form['organization']
+        
+        db = get_db()
+        try:
+            db.execute(
+                'INSERT INTO users (name, user_id, password, organization) VALUES (?, ?, ?, ?)',
+                (name, user_id, generate_password_hash(password), organization)
+            )
+            db.commit()
+            flash('ユーザーが正常に登録されました')
+            return redirect(url_for('users'))
+        except sqlite3.IntegrityError:
+            flash('そのユーザーIDは既に使用されています')
+    
+    return render_template('add_user.html')
+
+@app.route('/users/delete/<int:id>')
+@login_required
+def delete_user(id):
+    if session.get('organization') != 'JEIS':
+        flash('権限がありません')
+        return redirect(url_for('home'))
+    
+    db = get_db()
+    db.execute('DELETE FROM users WHERE id = ?', (id,))
+    db.commit()
+    flash('ユーザーが削除されました')
+    return redirect(url_for('users'))
+
 @app.route('/devices')
+@login_required
 def devices():
     db = get_db()
     devices = db.execute('''
@@ -46,6 +135,7 @@ def devices():
     return render_template('devices.html', devices=devices)
 
 @app.route('/add', methods=['GET', 'POST'])
+@login_required
 def add():
     if request.method == 'POST':
         location = request.form['location']
@@ -64,6 +154,7 @@ def add():
     return render_template('add.html')
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
 def edit(id):
     db = get_db()
     if request.method == 'POST':
@@ -87,6 +178,7 @@ def edit(id):
     return render_template('edit.html', device=device)
 
 @app.route('/delete/<int:id>')
+@login_required
 def delete(id):
     db = get_db()
     db.execute('DELETE FROM devices WHERE id = ?', (id,))
@@ -95,6 +187,7 @@ def delete(id):
     return redirect(url_for('devices'))
 
 @app.route('/export')
+@login_required
 def export_csv():
     db = get_db()
     devices = db.execute('SELECT * FROM devices ORDER BY created_at DESC').fetchall()
@@ -126,12 +219,14 @@ def export_csv():
     )
 
 @app.route('/lockers')
+@login_required
 def lockers():
     db = get_db()
     lockers = db.execute('SELECT * FROM lockers ORDER BY id').fetchall()
     return render_template('lockers.html', lockers=lockers)
 
 @app.route('/locker/<int:id>/toggle')
+@login_required
 def toggle_locker(id):
     db = get_db()
     locker = db.execute('SELECT status FROM lockers WHERE id = ?', (id,)).fetchone()
@@ -146,12 +241,14 @@ def toggle_locker(id):
     return redirect(url_for('lockers'))
 
 @app.route('/get_available_lockers')
+@login_required
 def get_available_lockers():
     db = get_db()
     lockers = db.execute('SELECT * FROM lockers WHERE status = "施錠" AND password IS NULL').fetchall()
     return jsonify([dict(locker) for locker in lockers])
 
 @app.route('/issue_password/<int:device_id>', methods=['POST'])
+@login_required
 def issue_password(device_id):
     db = get_db()
     locker_id = request.form.get('locker_id')
