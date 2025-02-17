@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>新規端末登録</h2>
+<form method="post">
+    <div class="mb-3">
+        <label for="location" class="form-label">箇所名</label>
+        <input type="text" class="form-control" id="location" name="location" required>
+    </div>
+    <div class="mb-3">
+        <label for="pc_id" class="form-label">PC/ID</label>
+        <input type="text" class="form-control" id="pc_id" name="pc_id" required>
+    </div>
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="is_replacement" name="is_replacement">
+        <label class="form-check-label" for="is_replacement">故障機交換</label>
+    </div>
+    <button type="submit" class="btn btn-primary">登録</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">キャンセル</a>
+</form>
+{% endblock %}

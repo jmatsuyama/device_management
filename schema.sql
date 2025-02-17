@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS devices;
+CREATE TABLE devices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    location TEXT NOT NULL,
+    pc_id TEXT NOT NULL,
+    status TEXT DEFAULT '準備中',
+    release_date DATE,
+    is_replacement BOOLEAN DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
