@@ -29,6 +29,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('users') }}">ユーザー管理</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('master') }}">マスタ出力</a>
+                    </li>
                     {% endif %}
                 </ul>
                 {% if session.get('user_id') %}
