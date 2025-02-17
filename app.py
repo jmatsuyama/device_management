@@ -232,19 +232,24 @@ def toggle_locker(id):
     locker = db.execute('SELECT status FROM lockers WHERE id = ?', (id,)).fetchone()
     new_status = '解錠' if locker['status'] == '施錠' else '施錠'
     
-    db.execute(
-        'UPDATE lockers SET status = ?, last_updated = CURRENT_TIMESTAMP WHERE id = ?',
-        (new_status, id)
-    )
-    db.commit()
-    flash(f'ロッカー{id}のステータスが{new_status}に変更されました')
+    # パスワードが設定されていない場合のみステータスを変更可能
+    if not db.execute('SELECT password FROM lockers WHERE id = ?', (id,)).fetchone()['password']:
+        db.execute(
+            'UPDATE lockers SET status = ?, last_updated = CURRENT_TIMESTAMP WHERE id = ?',
+            (new_status, id)
+        )
+        db.commit()
+        flash(f'ロッカー{id}のステータスが{new_status}に変更されました')
+    else:
+        flash('パスワードが発行されているロッカーのステータスは変更できません')
     return redirect(url_for('lockers'))
 
 @app.route('/get_available_lockers')
 @login_required
 def get_available_lockers():
     db = get_db()
-    lockers = db.execute('SELECT * FROM lockers WHERE status = "施錠" AND password IS NULL').fetchall()
+    # パスワードが設定されていないロッカーを取得（ステータスに関係なく）
+    lockers = db.execute('SELECT * FROM lockers WHERE password IS NULL ORDER BY id').fetchall()
     return jsonify([dict(locker) for locker in lockers])
 
 @app.route('/issue_password/<int:device_id>', methods=['POST'])
@@ -256,6 +261,11 @@ def issue_password(device_id):
     
     if not locker_id or not expiry_date:
         return jsonify({'error': '必要な情報が不足しています'}), 400
+    
+    # パスワードが既に設定されているかチェック
+    locker = db.execute('SELECT password FROM lockers WHERE id = ?', (locker_id,)).fetchone()
+    if locker['password']:
+        return jsonify({'error': 'このロッカーは既に使用されています'}), 400
     
     password = generate_password()
     expiry_datetime = datetime.strptime(expiry_date, '%Y-%m-%d')

@@ -122,9 +122,9 @@ document.querySelectorAll('.issue-password').forEach(button => {
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="locker" 
                        id="locker${locker.id}" value="${locker.id}" 
-                       ${locker.status === '施錠' ? 'disabled' : ''}>
+                       ${locker.password ? 'disabled' : ''}>
                 <label class="form-check-label" for="locker${locker.id}">
-                    ${locker.name} ${locker.status === '施錠' ? '(使用中)' : ''}
+                    ${locker.name} ${locker.status} ${locker.password ? '(使用中)' : ''}
                 </label>
             </div>
         `).join('');
