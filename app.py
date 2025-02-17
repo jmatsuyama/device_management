@@ -18,13 +18,23 @@ def init_db():
         db = get_db()
         with app.open_resource('schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
+        # 初期ロッカーデータの作成
+        cursor = db.cursor()
+        cursor.execute('SELECT COUNT(*) FROM lockers')
+        if cursor.fetchone()[0] == 0:
+            for i in range(1, 4):
+                cursor.execute('INSERT INTO lockers (name) VALUES (?)', (f'ロッカー{i}',))
         db.commit()
 
 @app.route('/')
-def index():
+def home():
+    return render_template('home.html')
+
+@app.route('/devices')
+def devices():
     db = get_db()
     devices = db.execute('SELECT * FROM devices ORDER BY created_at DESC').fetchall()
-    return render_template('index.html', devices=devices)
+    return render_template('devices.html', devices=devices)
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
@@ -40,7 +50,7 @@ def add():
         )
         db.commit()
         flash('端末が正常に登録されました')
-        return redirect(url_for('index'))
+        return redirect(url_for('devices'))
 
     return render_template('add.html')
 
@@ -62,7 +72,7 @@ def edit(id):
         )
         db.commit()
         flash('端末情報が更新されました')
-        return redirect(url_for('index'))
+        return redirect(url_for('devices'))
 
     device = db.execute('SELECT * FROM devices WHERE id = ?', (id,)).fetchone()
     return render_template('edit.html', device=device)
@@ -73,7 +83,7 @@ def delete(id):
     db.execute('DELETE FROM devices WHERE id = ?', (id,))
     db.commit()
     flash('端末が削除されました')
-    return redirect(url_for('index'))
+    return redirect(url_for('devices'))
 
 @app.route('/export')
 def export_csv():
@@ -105,6 +115,26 @@ def export_csv():
         as_attachment=True,
         download_name=f'devices_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
     )
+
+@app.route('/lockers')
+def lockers():
+    db = get_db()
+    lockers = db.execute('SELECT * FROM lockers ORDER BY id').fetchall()
+    return render_template('lockers.html', lockers=lockers)
+
+@app.route('/locker/<int:id>/toggle')
+def toggle_locker(id):
+    db = get_db()
+    locker = db.execute('SELECT status FROM lockers WHERE id = ?', (id,)).fetchone()
+    new_status = '解錠' if locker['status'] == '施錠' else '施錠'
+    
+    db.execute(
+        'UPDATE lockers SET status = ?, last_updated = CURRENT_TIMESTAMP WHERE id = ?',
+        (new_status, id)
+    )
+    db.commit()
+    flash(f'ロッカー{id}のステータスが{new_status}に変更されました')
+    return redirect(url_for('lockers'))
 
 if __name__ == '__main__':
     init_db()

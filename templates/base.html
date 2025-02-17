@@ -9,10 +9,22 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">端末管理システム</a>
-            <div class="navbar-nav">
-                <a class="nav-link" href="{{ url_for('index') }}">一覧</a>
-                <a class="nav-link" href="{{ url_for('add') }}">新規登録</a>
+            <a class="navbar-brand" href="{{ url_for('home') }}">端末管理システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('home') }}">ホーム</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('devices') }}">端末一覧</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lockers') }}">ロッカー管理</a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
