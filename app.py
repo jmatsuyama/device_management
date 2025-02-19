@@ -389,7 +389,7 @@ def export_devices_master():
     si.close()
     
     return send_file(
-        io.BytesIO(output.encode('utf-8-sig')),
+        BytesIO(output.encode('utf-8-sig')),
         mimetype='text/csv',
         as_attachment=True,
         download_name=f'devices_master_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
@@ -419,7 +419,7 @@ def export_lockers_master():
     si.close()
     
     return send_file(
-        io.BytesIO(output.encode('utf-8-sig')),
+        BytesIO(output.encode('utf-8-sig')),
         mimetype='text/csv',
         as_attachment=True,
         download_name=f'lockers_master_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
