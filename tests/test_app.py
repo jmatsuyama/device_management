@@ -143,6 +143,7 @@ class TestApp(unittest.TestCase):
         with open('tests/test_devices.csv', 'rb') as f:
             from io import BytesIO
             file_data = BytesIO(f.read())
+            file_data.name = 'test_devices.csv'
             response = self.client.post('/import_devices_master', data={
                 'file': (file_data, 'test_devices.csv', 'text/csv')
             }, follow_redirects=True)
