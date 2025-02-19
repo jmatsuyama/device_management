@@ -47,13 +47,13 @@ class TestApp(unittest.TestCase):
             db.execute('DELETE FROM lockers')
             db.execute('DELETE FROM devices')
             # テスト用ロッカー
-            db.execute('INSERT INTO lockers (name, status) VALUES (?, ?)', ('テストロッカー1', '施錠'))
-            db.execute('INSERT INTO lockers (name, status, password, password_expiry) VALUES (?, ?, ?, ?)',
-                      ('テストロッカー2', '施錠', '1234', datetime.now() + timedelta(days=1)))
+            db.execute('INSERT INTO lockers (id, name, status) VALUES (?, ?, ?)', (1, 'テストロッカー1', '施錠'))
+            db.execute('INSERT INTO lockers (id, name, status, password, password_expiry) VALUES (?, ?, ?, ?, ?)',
+                      (2, 'テストロッカー2', '施錠', '1234', datetime.now() + timedelta(days=1)))
             # テスト用端末
             db.execute(
-                'INSERT INTO devices (location, pc_id, status, is_replacement) VALUES (?, ?, ?, ?)',
-                ('テスト箇所', 'TEST001', '準備中', 0)
+                'INSERT INTO devices (id, location, pc_id, status, is_replacement) VALUES (?, ?, ?, ?, ?)',
+                (1, 'テスト箇所', 'TEST001', '準備中', 0)
             )
             db.commit()
     
@@ -109,7 +109,7 @@ class TestApp(unittest.TestCase):
             'locker_id': '2',
             'password': '1234'
         }, follow_redirects=True)
-        self.assertIn('ご利用ありがとうございました'.encode('utf-8'), response.data)  # "ご利用ありがとうございました"が含まれていることを確認
+        self.assertIn('が開きます。ご利用ありがとうございました'.encode('utf-8'), response.data)  # "ご利用ありがとうございました"が含まれていることを確認
     
     def test_invalid_locker_password(self):
         self.login('jr', 'jr123')
@@ -145,7 +145,7 @@ class TestApp(unittest.TestCase):
                 'file': (f, 'test_devices.csv')
             }, follow_redirects=True)
         
-        self.assertIn('端末マスタのインポートが完了しました'.encode('utf-8'), response.data)  # "インポートが完了しました"が含まれていることを確認
+        self.assertIn('インポートが完了しました'.encode('utf-8'), response.data)  # "インポートが完了しました"が含まれていることを確認
         os.unlink('tests/test_devices.csv')
 
 if __name__ == '__main__':

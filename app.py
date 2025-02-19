@@ -3,7 +3,7 @@ from functools import wraps
 import sqlite3
 import csv
 from datetime import datetime, timedelta
-from io import StringIO
+from io import StringIO, BytesIO
 import random
 from werkzeug.security import generate_password_hash, check_password_hash
 
