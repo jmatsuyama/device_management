@@ -70,7 +70,7 @@ class TestApp(unittest.TestCase):
     def test_login_jeis(self):
         # JEISユーザーでログイン
         response = self.login('admin', 'admin123')
-        self.assertIn(b'\xe3\x83\x9b\xe3\x83\xbc\xe3\x83\xa0', response.data)  # "ホーム"が含まれていることを確認
+        self.assertIn(b'\xe7\xab\xaf\xe6\x9c\xab\xe7\xae\xa1\xe7\x90\x86\xe3\x82\xb7\xe3\x82\xb9\xe3\x83\x86\xe3\x83\xa0', response.data)  # "端末管理システム"が含まれていることを確認
     
     def test_login_jr(self):
         # JRユーザーでログイン
@@ -80,7 +80,7 @@ class TestApp(unittest.TestCase):
     def test_invalid_login(self):
         # 無効なログイン
         response = self.login('invalid', 'invalid')
-        self.assertIn(b'\xe3\x83\xa6\xe3\x83\xbc\xe3\x82\xb6\xe3\x83\xbc\xe3\x81\xbe\xe3\x81\x9f\xe3\x81\xaf\xe3\x83\x91\xe3\x82\xb9\xe3\x83\xaf\xe3\x83\xbc\xe3\x83\x89\xe3\x81\x8c\xe6\xad\xa3\xe3\x81\x97\xe3\x81\x8f\xe3\x81\x82\xe3\x82\x8a\xe3\x81\xbe\xe3\x81\x9b\xe3\x82\x93', response.data)  # "ユーザーIDまたはパスワードが正しくありません"が含まれていることを確認
+        self.assertIn(b'\xe3\x83\xa6\xe3\x83\xbc\xe3\x82\xb6\xe3\x83\xbcID\xe3\x81\xbe\xe3\x81\x9f\xe3\x81\xaf\xe3\x83\x91\xe3\x82\xb9\xe3\x83\xaf\xe3\x83\xbc\xe3\x83\x89\xe3\x81\x8c\xe6\xad\xa3\xe3\x81\x97\xe3\x81\x8f\xe3\x81\x82\xe3\x82\x8a\xe3\x81\xbe\xe3\x81\x9b\xe3\x82\x93', response.data)  # "ユーザーIDまたはパスワードが正しくありません"が含まれていることを確認
     
     # アクセス制御のテスト
     def test_jeis_access(self):
@@ -90,7 +90,7 @@ class TestApp(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get('/users')
         self.assertEqual(response.status_code, 200)
-        response = self.client.get('/master_output')
+        response = self.client.get('/master')
         self.assertEqual(response.status_code, 200)
     
     def test_jr_access(self):
