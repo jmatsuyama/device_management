@@ -468,7 +468,7 @@ def import_devices_master():
             )
         
         db.commit()
-        flash('端末マスタのインポートが完了しました')
+        flash('インポートが完了しました')
         
     except Exception as e:
         flash(f'インポート中にエラーが発生しました: {str(e)}')
@@ -516,7 +516,7 @@ def import_lockers_master():
             )
         
         db.commit()
-        flash('ロッカーマスタのインポートが完了しました')
+        flash('インポートが完了しました')
         
     except Exception as e:
         flash(f'インポート中にエラーが発生しました: {str(e)}')
