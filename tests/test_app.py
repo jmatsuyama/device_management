@@ -109,7 +109,7 @@ class TestApp(unittest.TestCase):
             'locker_id': '2',
             'password': '1234'
         }, follow_redirects=True)
-        self.assertIn(b'\xe3\x81\x94\xe5\x88\xa9\xe7\x94\xa8\xe3\x81\x82\xe3\x82\x8a\xe3\x81\x8c\xe3\x81\xa8\xe3\x81\x86\xe3\x81\x94\xe3\x81\x96\xe3\x81\x84\xe3\x81\xbe\xe3\x81\x97\xe3\x81\x9f', response.data)  # "ご利用ありがとうございました"が含まれていることを確認
+        self.assertIn('ご利用ありがとうございました'.encode('utf-8'), response.data)  # "ご利用ありがとうございました"が含まれていることを確認
     
     def test_invalid_locker_password(self):
         self.login('jr', 'jr123')
@@ -118,7 +118,7 @@ class TestApp(unittest.TestCase):
             'locker_id': '2',
             'password': '9999'
         }, follow_redirects=True)
-        self.assertIn(b'\xe3\x83\x91\xe3\x82\xb9\xe3\x83\xaf\xe3\x83\xbc\xe3\x83\x89\xe3\x81\x8c\xe6\xad\xa3\xe3\x81\x97\xe3\x81\x8f\xe3\x81\x82\xe3\x82\x8a\xe3\x81\xbe\xe3\x81\x9b\xe3\x82\x93', response.data)  # "パスワードが正しくありません"が含まれていることを確認
+        self.assertIn('パスワードが正しくありません'.encode('utf-8'), response.data)  # "パスワードが正しくありません"が含まれていることを確認
     
     # マスタ出力機能のテスト
     def test_export_master(self):
@@ -145,7 +145,7 @@ class TestApp(unittest.TestCase):
                 'file': (f, 'test_devices.csv')
             }, follow_redirects=True)
         
-        self.assertIn(b'\xe3\x82\xa4\xe3\x83\xb3\xe3\x83\x9d\xe3\x83\xbc\xe3\x83\x88\xe3\x81\x8c\xe5\xae\x8c\xe4\xba\x86\xe3\x81\x97\xe3\x81\xbe\xe3\x81\x97\xe3\x81\x9f', response.data)  # "インポートが完了しました"が含まれていることを確認
+        self.assertIn('端末マスタのインポートが完了しました'.encode('utf-8'), response.data)  # "インポートが完了しました"が含まれていることを確認
         os.unlink('tests/test_devices.csv')
 
 if __name__ == '__main__':
