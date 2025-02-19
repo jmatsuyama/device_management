@@ -145,7 +145,7 @@ class TestApp(unittest.TestCase):
                 'file': (f, 'test_devices.csv')
             }, follow_redirects=True)
         
-        self.assertIn('インポートが完了しました'.encode('utf-8'), response.data)  # "インポートが完了しました"が含まれていることを確認
+        self.assertIn('インポートが完了しました', response.get_data(as_text=True))  # "インポートが完了しました"が含まれていることを確認
         os.unlink('tests/test_devices.csv')
 
 if __name__ == '__main__':
