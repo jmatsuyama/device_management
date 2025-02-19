@@ -146,7 +146,7 @@ class TestApp(unittest.TestCase):
             file_data.name = 'test_devices.csv'
             response = self.client.post('/import_devices_master', data={
                 'file': (file_data, 'test_devices.csv', 'text/csv')
-            }, follow_redirects=True)
+            }, content_type='multipart/form-data', follow_redirects=True)
         
         self.assertIn('インポートが完了しました', response.get_data(as_text=True))  # "インポートが完了しました"が含まれていることを確認
         os.unlink('tests/test_devices.csv')
