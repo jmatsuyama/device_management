@@ -141,8 +141,10 @@ class TestApp(unittest.TestCase):
             f.write('1,テスト箇所,TEST002,準備中,,0,\n')
         
         with open('tests/test_devices.csv', 'rb') as f:
+            from io import BytesIO
+            file_data = BytesIO(f.read())
             response = self.client.post('/import_devices_master', data={
-                'file': (f, 'test_devices.csv', 'text/csv')
+                'file': (file_data, 'test_devices.csv', 'text/csv')
             }, follow_redirects=True)
         
         self.assertIn('インポートが完了しました', response.get_data(as_text=True))  # "インポートが完了しました"が含まれていることを確認
