@@ -90,7 +90,7 @@ class TestApp(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get('/users')
         self.assertEqual(response.status_code, 200)
-        response = self.client.get('/master')
+        response = self.client.get('/master_output')
         self.assertEqual(response.status_code, 200)
     
     def test_jr_access(self):
