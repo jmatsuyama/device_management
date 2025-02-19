@@ -142,7 +142,7 @@ class TestApp(unittest.TestCase):
         
         with open('tests/test_devices.csv', 'rb') as f:
             response = self.client.post('/import_devices_master', data={
-                'file': (f, 'test_devices.csv')
+                'file': (f, 'test_devices.csv', 'text/csv')
             }, follow_redirects=True)
         
         self.assertIn('インポートが完了しました', response.get_data(as_text=True))  # "インポートが完了しました"が含まれていることを確認
