@@ -26,6 +26,8 @@ class TestApp(unittest.TestCase):
     def create_test_users(self):
         with app.app_context():
             db = get_db()
+            # 既存のユーザーを削除
+            db.execute('DELETE FROM users')
             # JEISユーザー
             db.execute(
                 'INSERT INTO users (name, user_id, password, organization) VALUES (?, ?, ?, ?)',
@@ -41,6 +43,9 @@ class TestApp(unittest.TestCase):
     def create_test_data(self):
         with app.app_context():
             db = get_db()
+            # 既存のデータを削除
+            db.execute('DELETE FROM lockers')
+            db.execute('DELETE FROM devices')
             # テスト用ロッカー
             db.execute('INSERT INTO lockers (name, status) VALUES (?, ?)', ('テストロッカー1', '施錠'))
             db.execute('INSERT INTO lockers (name, status, password, password_expiry) VALUES (?, ?, ?, ?)',
