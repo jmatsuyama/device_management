@@ -70,17 +70,17 @@ class TestApp(unittest.TestCase):
     def test_login_jeis(self):
         # JEISユーザーでログイン
         response = self.login('admin', 'admin123')
-        self.assertIn(b'\xe7\xab\xaf\xe6\x9c\xab\xe7\xae\xa1\xe7\x90\x86\xe3\x82\xb7\xe3\x82\xb9\xe3\x83\x86\xe3\x83\xa0', response.data)  # "端末管理システム"が含まれていることを確認
+        self.assertIn('端末管理システム', response.get_data(as_text=True))  # "端末管理システム"が含まれていることを確認
     
     def test_login_jr(self):
         # JRユーザーでログイン
         response = self.login('jr', 'jr123')
-        self.assertIn(b'\xe7\xab\xaf\xe6\x9c\xab\xe5\x8f\x97\xe4\xbb\x98', response.data)  # "端末受付"が含まれていることを確認
+        self.assertIn('端末受付', response.get_data(as_text=True))  # "端末受付"が含まれていることを確認
     
     def test_invalid_login(self):
         # 無効なログイン
         response = self.login('invalid', 'invalid')
-        self.assertIn(b'\xe3\x83\xa6\xe3\x83\xbc\xe3\x82\xb6\xe3\x83\xbcID\xe3\x81\xbe\xe3\x81\x9f\xe3\x81\xaf\xe3\x83\x91\xe3\x82\xb9\xe3\x83\xaf\xe3\x83\xbc\xe3\x83\x89\xe3\x81\x8c\xe6\xad\xa3\xe3\x81\x97\xe3\x81\x8f\xe3\x81\x82\xe3\x82\x8a\xe3\x81\xbe\xe3\x81\x9b\xe3\x82\x93', response.data)  # "ユーザーIDまたはパスワードが正しくありません"が含まれていることを確認
+        self.assertIn('ユーザーIDまたはパスワードが正しくありません', response.get_data(as_text=True))  # "ユーザーIDまたはパスワードが正しくありません"が含まれていることを確認
     
     # アクセス制御のテスト
     def test_jeis_access(self):
@@ -109,7 +109,7 @@ class TestApp(unittest.TestCase):
             'locker_id': '2',
             'password': '1234'
         }, follow_redirects=True)
-        self.assertIn('が開きます。ご利用ありがとうございました'.encode('utf-8'), response.data)  # "ご利用ありがとうございました"が含まれていることを確認
+        self.assertIn('が開きます。ご利用ありがとうございました', response.get_data(as_text=True))  # "ご利用ありがとうございました"が含まれていることを確認
     
     def test_invalid_locker_password(self):
         self.login('jr', 'jr123')
@@ -118,7 +118,7 @@ class TestApp(unittest.TestCase):
             'locker_id': '2',
             'password': '9999'
         }, follow_redirects=True)
-        self.assertIn('パスワードが正しくありません'.encode('utf-8'), response.data)  # "パスワードが正しくありません"が含まれていることを確認
+        self.assertIn('パスワードが正しくありません', response.get_data(as_text=True))  # "パスワードが正しくありません"が含まれていることを確認
     
     # マスタ出力機能のテスト
     def test_export_master(self):
