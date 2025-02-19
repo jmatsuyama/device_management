@@ -88,7 +88,7 @@ def enter_password():
         
         locker = db.execute('SELECT * FROM lockers WHERE id = ?', (locker_id,)).fetchone()
         
-        if not locker['password']:
+        if not locker or not locker['password']:
             flash('このロッカーは使用できません')
             return redirect(url_for('enter_password'))
         
@@ -351,6 +351,177 @@ def issue_password(device_id):
         'password': password,
         'locker_name': db.execute('SELECT name FROM lockers WHERE id = ?', (locker_id,)).fetchone()['name']
     })
+
+@app.route('/master_output')
+@login_required
+@jeis_required
+def master_output():
+    return render_template('master.html')
+
+@app.route('/export_devices_master')
+@login_required
+@jeis_required
+def export_devices_master():
+    db = get_db()
+    devices = db.execute('''
+        SELECT d.*, l.name as locker_name 
+        FROM devices d 
+        LEFT JOIN lockers l ON d.locker_id = l.id 
+        ORDER BY d.id
+    ''').fetchall()
+    
+    si = StringIO()
+    writer = csv.writer(si)
+    writer.writerow(['ID', '箇所名', 'PC/ID', 'ステータス', '解除期限', '故障機交換', 'ロッカーID'])
+    
+    for device in devices:
+        writer.writerow([
+            device['id'],
+            device['location'],
+            device['pc_id'],
+            device['status'],
+            device['release_date'],
+            '1' if device['is_replacement'] else '0',
+            device['locker_id'] or ''
+        ])
+    
+    output = si.getvalue()
+    si.close()
+    
+    return send_file(
+        io.BytesIO(output.encode('utf-8-sig')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=f'devices_master_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+    )
+
+@app.route('/export_lockers_master')
+@login_required
+@jeis_required
+def export_lockers_master():
+    db = get_db()
+    lockers = db.execute('SELECT * FROM lockers ORDER BY id').fetchall()
+    
+    si = StringIO()
+    writer = csv.writer(si)
+    writer.writerow(['ID', 'ロッカー名', 'ステータス', 'パスワード', 'パスワード有効期限'])
+    
+    for locker in lockers:
+        writer.writerow([
+            locker['id'],
+            locker['name'],
+            locker['status'],
+            locker['password'] or '',
+            locker['password_expiry'] or ''
+        ])
+    
+    output = si.getvalue()
+    si.close()
+    
+    return send_file(
+        io.BytesIO(output.encode('utf-8-sig')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=f'lockers_master_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+    )
+
+@app.route('/import_devices_master', methods=['POST'])
+@login_required
+@jeis_required
+def import_devices_master():
+    if 'file' not in request.files:
+        flash('ファイルがアップロードされていません')
+        return redirect(url_for('master_output'))
+    
+    file = request.files['file']
+    if file.filename == '':
+        flash('ファイルが選択されていません')
+        return redirect(url_for('master_output'))
+    
+    if not file.filename.endswith('.csv'):
+        flash('CSVファイルのみアップロード可能です')
+        return redirect(url_for('master_output'))
+    
+    try:
+        # CSVファイルを読み込む
+        stream = codecs.iterdecode(file.stream, 'utf-8-sig')
+        reader = csv.DictReader(stream)
+        
+        db = get_db()
+        # 既存のデータを全て削除
+        db.execute('DELETE FROM devices')
+        
+        # 新しいデータを挿入
+        for row in reader:
+            db.execute(
+                'INSERT INTO devices (id, location, pc_id, status, release_date, is_replacement, locker_id) '
+                'VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (
+                    row['ID'],
+                    row['箇所名'],
+                    row['PC/ID'],
+                    row['ステータス'],
+                    row['解除期限'] or None,
+                    1 if row['故障機交換'] == '1' else 0,
+                    row['ロッカーID'] or None
+                )
+            )
+        
+        db.commit()
+        flash('端末マスタのインポートが完了しました')
+        
+    except Exception as e:
+        flash(f'インポート中にエラーが発生しました: {str(e)}')
+    
+    return redirect(url_for('master_output'))
+
+@app.route('/import_lockers_master', methods=['POST'])
+@login_required
+@jeis_required
+def import_lockers_master():
+    if 'file' not in request.files:
+        flash('ファイルがアップロードされていません')
+        return redirect(url_for('master_output'))
+    
+    file = request.files['file']
+    if file.filename == '':
+        flash('ファイルが選択されていません')
+        return redirect(url_for('master_output'))
+    
+    if not file.filename.endswith('.csv'):
+        flash('CSVファイルのみアップロード可能です')
+        return redirect(url_for('master_output'))
+    
+    try:
+        # CSVファイルを読み込む
+        stream = codecs.iterdecode(file.stream, 'utf-8-sig')
+        reader = csv.DictReader(stream)
+        
+        db = get_db()
+        # 既存のデータを全て削除
+        db.execute('DELETE FROM lockers')
+        
+        # 新しいデータを挿入
+        for row in reader:
+            db.execute(
+                'INSERT INTO lockers (id, name, status, password, password_expiry) '
+                'VALUES (?, ?, ?, ?, ?)',
+                (
+                    row['ID'],
+                    row['ロッカー名'],
+                    row['ステータス'],
+                    row['パスワード'] or None,
+                    row['パスワード有効期限'] or None
+                )
+            )
+        
+        db.commit()
+        flash('ロッカーマスタのインポートが完了しました')
+        
+    except Exception as e:
+        flash(f'インポート中にエラーが発生しました: {str(e)}')
+    
+    return redirect(url_for('master_output'))
 
 if __name__ == '__main__':
     init_db()
