@@ -8,8 +8,8 @@
 <h3>端末管理</h3>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="ShowAddDialog">新規登録</button>
-    <button class="btn btn-secondary" @onclick="async () => await ExportToCsv()">CSVエクスポート</button>
+    <button class="btn btn-primary" @onclick="() => ShowAddDialog()">新規登録</button>
+    <button class="btn btn-secondary" @onclick="ExportToCsv">CSVエクスポート</button>
 </div>
 
 <table class="table">
@@ -97,13 +97,28 @@
 }
 
 @code {
-    private bool showDialog = false;
+    private bool showDialog;
     private Device editingDevice = new Device();
+    private List<Device> devices => DeviceService.GetDevices();
+
+    protected override void OnInitialized()
+    {
+        editingDevice = new Device
+        {
+            Status = DeviceStatus.準備中,
+            ReleaseDeadline = DateTime.Today
+        };
+    }
 
     private void ShowAddDialog()
     {
-        editingDevice = new Device();
+        editingDevice = new Device
+        {
+            Status = DeviceStatus.準備中,
+            ReleaseDeadline = DateTime.Today
+        };
         showDialog = true;
+        StateHasChanged();
     }
 
     private void ShowEditDialog(Device device)
@@ -118,15 +133,22 @@
             IsFaultyReplacement = device.IsFaultyReplacement
         };
         showDialog = true;
+        StateHasChanged();
     }
 
     private void CloseDialog()
     {
         showDialog = false;
+        StateHasChanged();
     }
 
     private void SaveDevice()
     {
+        if (string.IsNullOrWhiteSpace(editingDevice.Location) || string.IsNullOrWhiteSpace(editingDevice.PcId))
+        {
+            return;
+        }
+
         if (editingDevice.Id == 0)
         {
             DeviceService.AddDevice(editingDevice);
@@ -135,7 +157,9 @@
         {
             DeviceService.UpdateDevice(editingDevice);
         }
+        
         showDialog = false;
+        StateHasChanged();
     }
 
     private async Task DeleteDevice(int id)
@@ -143,13 +167,21 @@
         if (await JSRuntime.InvokeAsync<bool>("confirm", "本当に削除しますか？"))
         {
             DeviceService.DeleteDevice(id);
+            StateHasChanged();
         }
     }
 
     private async Task ExportToCsv()
     {
-        var csv = DeviceService.ExportToCsv();
-        var encodedUri = "data:text/csv;charset=utf-8," + Uri.EscapeDataString(csv);
-        await JSRuntime.InvokeVoidAsync("downloadFile", encodedUri, "devices.csv");
+        try
+        {
+            var csv = DeviceService.ExportToCsv();
+            var encodedUri = "data:text/csv;charset=utf-8," + Uri.EscapeDataString(csv);
+            await JSRuntime.InvokeVoidAsync("downloadFile", encodedUri, "devices.csv");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"CSVのエクスポートに失敗しました: {ex.Message}");
+        }
     }
 }
