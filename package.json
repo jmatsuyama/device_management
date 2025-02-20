@@ -1,0 +1,17 @@
+{
+  "name": "device_management",
+  "version": "1.0.0",
+  "description": "A system to manage devices with list display, new registration, editing, and deletion features.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {},
+  "author": "jmatsuyama",
+  "license": "ISC"
+}
