@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Device Management System</h1>
+    </header>
+    <main>
+        <section id="list-display">
+            <h2>List Display</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Location Name</th>
+                        <th>PC/ID</th>
+                        <th>Status</th>
+                        <th>Release Deadline</th>
+                        <th>Replacement Flag</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Device list will be populated here -->
+                </tbody>
+            </table>
+            <button id="export-csv">Export to CSV</button>
+        </section>
+        <section id="new-registration">
+            <h2>New Registration</h2>
+            <form id="registration-form">
+                <label for="location-name">Location Name:</label>
+                <input type="text" id="location-name" name="location-name" required>
+                <label for="pc-id">PC/ID:</label>
+                <input type="text" id="pc-id" name="pc-id" required>
+                <label for="replacement-flag">Replacement Flag:</label>
+                <input type="checkbox" id="replacement-flag" name="replacement-flag">
+                <button type="submit">Register</button>
+            </form>
+        </section>
+        <section id="edit-device">
+            <h2>Edit Device</h2>
+            <form id="edit-form">
+                <label for="edit-location-name">Location Name:</label>
+                <input type="text" id="edit-location-name" name="edit-location-name" required>
+                <label for="edit-pc-id">PC/ID:</label>
+                <input type="text" id="edit-pc-id" name="edit-pc-id" required>
+                <label for="edit-status">Status:</label>
+                <select id="edit-status" name="edit-status" required>
+                    <option value="preparing">Preparing</option>
+                    <option value="waiting-for-shipment">Waiting for shipment</option>
+                    <option value="waiting-for-receipt">Waiting for receipt</option>
+                    <option value="received">Received</option>
+                </select>
+                <label for="edit-release-deadline">Release Deadline:</label>
+                <input type="date" id="edit-release-deadline" name="edit-release-deadline" required>
+                <label for="edit-replacement-flag">Replacement Flag:</label>
+                <input type="checkbox" id="edit-replacement-flag" name="edit-replacement-flag">
+                <button type="submit">Save Changes</button>
+            </form>
+        </section>
+        <section id="delete-device">
+            <h2>Delete Device</h2>
+            <form id="delete-form">
+                <label for="delete-pc-id">PC/ID:</label>
+                <input type="text" id="delete-pc-id" name="delete-pc-id" required>
+                <button type="submit">Delete</button>
+            </form>
+        </section>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>
