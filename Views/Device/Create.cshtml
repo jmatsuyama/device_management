@@ -4,35 +4,48 @@
     ViewData["Title"] = "新規登録";
 }
 
-<h1>新規登録</h1>
+<div class="container">
+    <h1 class="mb-4">新規登録</h1>
 
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Location" class="control-label"></label>
-                <input asp-for="Location" class="form-control" />
-                <span asp-validation-for="Location" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PcId" class="control-label"></label>
-                <input asp-for="PcId" class="form-control" />
-                <span asp-validation-for="PcId" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsFaultyReplacement" /> @Html.DisplayNameFor(model => model.IsFaultyReplacement)
-                </label>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="登録" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">戻る</a>
-            </div>
-        </form>
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="Location" class="form-label"></label>
+                            <input asp-for="Location" class="form-control" />
+                            <span asp-validation-for="Location" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PcId" class="form-label"></label>
+                            <input asp-for="PcId" class="form-control" />
+                            <span asp-validation-for="PcId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsFaultyReplacement" class="form-check-input" />
+                            <label asp-for="IsFaultyReplacement" class="form-check-label"></label>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary me-md-2">
+                                <i class="bi bi-arrow-left"></i> 戻る
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> 登録
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
 }

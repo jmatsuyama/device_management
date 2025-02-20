@@ -10,6 +10,13 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<DeviceDbContext>(options =>
     options.UseInMemoryDatabase("DeviceDb")); // 開発用にインメモリデータベースを使用
 
+// Add default data
+using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<DeviceDbContext>();
+    context.Database.EnsureCreated();
+}
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

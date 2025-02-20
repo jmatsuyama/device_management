@@ -48,12 +48,19 @@ namespace DeviceManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Location,PcId,IsFaultyReplacement")] Device device)
         {
-            if (ModelState.IsValid)
+            try
             {
-                device.Status = DeviceStatus.準備中;
-                _context.Add(device);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    device.Status = DeviceStatus.準備中;
+                    _context.Devices.Add(device);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "登録中にエラーが発生しました。" + ex.Message);
             }
             return View(device);
         }
