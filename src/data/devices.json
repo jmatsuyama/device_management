@@ -1,0 +1,30 @@
+[
+    {
+        "locationName": "Office A",
+        "pcId": "PC001",
+        "status": "preparing",
+        "releaseDeadline": "2023-12-31",
+        "replacementFlag": false
+    },
+    {
+        "locationName": "Office B",
+        "pcId": "PC002",
+        "status": "waiting-for-shipment",
+        "releaseDeadline": "2023-11-30",
+        "replacementFlag": true
+    },
+    {
+        "locationName": "Office C",
+        "pcId": "PC003",
+        "status": "waiting-for-receipt",
+        "releaseDeadline": "2023-10-31",
+        "replacementFlag": false
+    },
+    {
+        "locationName": "Office D",
+        "pcId": "PC004",
+        "status": "received",
+        "releaseDeadline": "2023-09-30",
+        "replacementFlag": true
+    }
+]
