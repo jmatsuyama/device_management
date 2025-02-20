@@ -2,6 +2,3 @@
 
 # General dependencies
 argparse==1.4.0
-
-# Testing dependencies
-unittest==1.0.0
