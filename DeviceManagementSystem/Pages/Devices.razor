@@ -1,0 +1,153 @@
+@page "/devices"
+@using DeviceManagementSystem.Models
+@using DeviceManagementSystem.Data
+@inject DeviceService DeviceService
+
+<h3>端末管理</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="ShowAddDialog">新規登録</button>
+    <button class="btn btn-secondary" @onclick="ExportToCsv">CSVエクスポート</button>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>箇所名</th>
+            <th>PC/ID</th>
+            <th>ステータス</th>
+            <th>解除期限</th>
+            <th>故障機交換</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var device in DeviceService.GetDevices())
+        {
+            <tr>
+                <td>@device.Id</td>
+                <td>@device.Location</td>
+                <td>@device.PcId</td>
+                <td>@device.Status</td>
+                <td>@(device.ReleaseDeadline?.ToString("yyyy-MM-dd"))</td>
+                <td>@(device.IsFaultyReplacement ? "はい" : "いいえ")</td>
+                <td>
+                    <button class="btn btn-sm btn-info" @onclick="() => ShowEditDialog(device)">編集</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteDevice(device.Id)">削除</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (showDialog)
+{
+    <div class="modal" tabindex="-1" style="display:block">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingDevice.Id == 0 ? "新規登録" : "端末編集")</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>箇所名</label>
+                        <input class="form-control" @bind="editingDevice.Location" />
+                    </div>
+                    <div class="form-group">
+                        <label>PC/ID</label>
+                        <input class="form-control" @bind="editingDevice.PcId" />
+                    </div>
+                    @if (editingDevice.Id != 0)
+                    {
+                        <div class="form-group">
+                            <label>ステータス</label>
+                            <select class="form-control" @bind="editingDevice.Status">
+                                @foreach (var status in Enum.GetValues(typeof(DeviceStatus)))
+                                {
+                                    <option value="@status">@status</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>解除期限</label>
+                            <input type="date" class="form-control" 
+                                   @bind="editingDevice.ReleaseDeadline" 
+                                   @bind:format="yyyy-MM-dd" />
+                        </div>
+                    }
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" @bind="editingDevice.IsFaultyReplacement" />
+                            故障機交換
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseDialog">キャンセル</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveDevice">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop show"></div>
+}
+
+@code {
+    private bool showDialog = false;
+    private Device editingDevice = new Device();
+
+    private void ShowAddDialog()
+    {
+        editingDevice = new Device();
+        showDialog = true;
+    }
+
+    private void ShowEditDialog(Device device)
+    {
+        editingDevice = new Device
+        {
+            Id = device.Id,
+            Location = device.Location,
+            PcId = device.PcId,
+            Status = device.Status,
+            ReleaseDeadline = device.ReleaseDeadline,
+            IsFaultyReplacement = device.IsFaultyReplacement
+        };
+        showDialog = true;
+    }
+
+    private void CloseDialog()
+    {
+        showDialog = false;
+    }
+
+    private void SaveDevice()
+    {
+        if (editingDevice.Id == 0)
+        {
+            DeviceService.AddDevice(editingDevice);
+        }
+        else
+        {
+            DeviceService.UpdateDevice(editingDevice);
+        }
+        showDialog = false;
+    }
+
+    private void DeleteDevice(int id)
+    {
+        if (confirm("本当に削除しますか？"))
+        {
+            DeviceService.DeleteDevice(id);
+        }
+    }
+
+    private void ExportToCsv()
+    {
+        var csv = DeviceService.ExportToCsv();
+        var encodedUri = "data:text/csv;charset=utf-8," + Uri.EscapeDataString(csv);
+        js.InvokeVoidAsync("downloadFile", encodedUri, "devices.csv");
+    }
+}
