@@ -1,0 +1,39 @@
+@model IEnumerable<DeviceManagementSystem.Models.Device>
+
+@{
+    ViewData["Title"] = "端末一覧";
+}
+
+<h1>端末一覧</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">新規登録</a>
+    <a asp-action="ExportCsv" class="btn btn-secondary">CSV出力</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Location)</th>
+            <th>@Html.DisplayNameFor(model => model.PcId)</th>
+            <th>@Html.DisplayNameFor(model => model.Status)</th>
+            <th>@Html.DisplayNameFor(model => model.ExpirationDate)</th>
+            <th>@Html.DisplayNameFor(model => model.IsFaultyReplacement)</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.Location)</td>
+            <td>@Html.DisplayFor(modelItem => item.PcId)</td>
+            <td>@Html.DisplayFor(modelItem => item.Status)</td>
+            <td>@Html.DisplayFor(modelItem => item.ExpirationDate)</td>
+            <td>@Html.DisplayFor(modelItem => item.IsFaultyReplacement)</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-info">編集</a>
+                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">削除</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -1,0 +1,49 @@
+@model DeviceManagementSystem.Models.Device
+
+@{
+    ViewData["Title"] = "削除";
+}
+
+<h1>削除</h1>
+
+<h3>この端末を削除してもよろしいですか？</h3>
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Location)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Location)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.PcId)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.PcId)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Status)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Status)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ExpirationDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ExpirationDate)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.IsFaultyReplacement)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.IsFaultyReplacement)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="削除" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">戻る</a>
+    </form>
+</div>

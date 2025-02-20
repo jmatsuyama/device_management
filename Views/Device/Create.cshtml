@@ -1,0 +1,38 @@
+@model DeviceManagementSystem.Models.Device
+
+@{
+    ViewData["Title"] = "新規登録";
+}
+
+<h1>新規登録</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Location" class="control-label"></label>
+                <input asp-for="Location" class="form-control" />
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PcId" class="control-label"></label>
+                <input asp-for="PcId" class="form-control" />
+                <span asp-validation-for="PcId" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="IsFaultyReplacement" /> @Html.DisplayNameFor(model => model.IsFaultyReplacement)
+                </label>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="登録" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">戻る</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
