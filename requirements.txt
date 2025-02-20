@@ -1,0 +1,8 @@
+# Requirements for Device Management System
+
+# General dependencies
+argparse==1.4.0
+csv==1.0
+
+# Testing dependencies
+unittest==1.0.0
